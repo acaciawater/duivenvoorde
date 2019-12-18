@@ -227,3 +227,10 @@ LOGGING = {
 }
 
 from secrets import *
+
+# if 'test' in sys.argv:
+#     DATABASES['default'] = {
+#         'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+#         'NAME': 'test_database'
+#     }
+    
