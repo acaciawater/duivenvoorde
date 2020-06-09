@@ -61,7 +61,15 @@ def well_locations(request):
     for p in Well.objects.filter(location__isnull=False):
         try:
             pnt = p.location
-            result.append({'id': p.id, 'name': p.name, 'nitg': p.nitg, 'description': p.description, 'lon': pnt.x, 'lat': pnt.y})
+            result.append({
+                'id': p.id, 
+                'name': p.name, 
+                'nitg': p.nitg, 
+                'description': p.description, 
+                'lon': pnt.x, 
+                'lat': pnt.y,
+                'color': statuscolor(p.last_measurement()) 
+                })
         except Exception as e:
             return HttpResponseServerError(unicode(e))
     return JsonResponse(result,safe=False)

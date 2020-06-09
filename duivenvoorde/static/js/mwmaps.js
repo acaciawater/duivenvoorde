@@ -65,6 +65,20 @@ var redBullet = L.icon({
     popupAnchor: [0, 0],
 });
 
+function createIcons() {
+	return ['red','green','blue','yellow','grey'].reduce((icon, color) => {
+			icon[color] = L.icon({
+			    iconUrl: `/static/${color}_marker16.png`,
+			    iconSize: [12, 12],
+			    iconAnchor: [6,6],
+			    popupAnchor: [0, 0],
+			})
+			return icon
+		},{})
+}
+
+var icons = createIcons()
+
 var theMap = null;
 var markers = []; // Should be associative array: {} ??
 
@@ -72,7 +86,7 @@ function addMarkers(map,zoom) {
 	$.getJSON('/locs', function(data) {
 		bounds = new L.LatLngBounds();
 		$.each(data, function(key,val) {
-			marker = L.marker([val.lat, val.lon],{title:val.name, icon: redBullet});
+			marker = L.marker([val.lat, val.lon],{title:val.name, icon: icons[val.color] || icons.grey});
 			markers[val.id] = marker;
 			marker.bindPopup("Loading...",{maxWidth: "auto"});
 			marker.bindTooltip(val.name,{permanent:true,className:"label",opacity:0.7,direction:"top",offset:[0,-10]});
