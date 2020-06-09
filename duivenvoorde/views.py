@@ -53,14 +53,16 @@ class PopupView(DetailView):
     """ returns html response for leaflet popup """
     model = Well
     template_name = 'meetnet/well_info.html'
+
     
 def well_locations(request):
-    """ return json response with well locations
+    """ return json response with well locations, latest measurement and status color
     """
     result = []
     for p in Well.objects.filter(location__isnull=False):
         try:
             pnt = p.location
+            last = p.last_measurement()
             result.append({
                 'id': p.id, 
                 'name': p.name, 
@@ -68,7 +70,8 @@ def well_locations(request):
                 'description': p.description, 
                 'lon': pnt.x, 
                 'lat': pnt.y,
-                'color': statuscolor(p.last_measurement()) 
+                'latest': {'date': last.date.isoformat(), 'value': last.value} if last else {},
+                'color': statuscolor(last) 
                 })
         except Exception as e:
             return HttpResponseServerError(unicode(e))
