@@ -65,6 +65,10 @@ var redBullet = L.icon({
     popupAnchor: [0, 0],
 });
 
+/**
+ * create marker icons for leaflet map 
+ * @returns icons object
+ */
 function createIcons() {
 	return ['red','green','blue','yellow','grey'].reduce((icon, color) => {
 			icon[color] = L.icon({
@@ -78,7 +82,6 @@ function createIcons() {
 }
 
 var icons = createIcons()
-
 var theMap = null;
 var markers = []; // Should be associative array: {} ??
 
