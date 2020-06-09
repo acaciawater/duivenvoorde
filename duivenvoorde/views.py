@@ -58,7 +58,7 @@ def well_locations(request):
     """ return json response with well locations
     """
     result = []
-    for p in Well.objects.all():
+    for p in Well.objects.filter(location__isnull=False):
         try:
             pnt = p.location
             result.append({'id': p.id, 'name': p.name, 'nitg': p.nitg, 'description': p.description, 'lon': pnt.x, 'lat': pnt.y})
