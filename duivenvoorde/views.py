@@ -12,6 +12,8 @@ from django.views.generic.detail import DetailView
 from acacia.meetnet.models import Network, Well
 from acacia.meetnet.views import NetworkView
 from django.utils import timezone
+from django.utils.timesince import timesince
+import locale
 
 def statuscolor(last):
     """ returns color for bullets on home page.
@@ -39,11 +41,6 @@ class HomeView(NetworkView):
         context['api_key'] = settings.GOOGLE_MAPS_API_KEY
         context['options'] = json.dumps(options)
 
-        welldata = []
-        for w in Well.objects.order_by('name'):
-            last = w.last_measurement()
-            welldata.append((w,last,statuscolor(last)))
-        context['wells'] = welldata
         return context
 
     def get_object(self):
@@ -56,10 +53,16 @@ class PopupView(DetailView):
 
     
 def well_locations(request):
-    """ return json response with well locations, latest measurement and status color
+    """ return json response with well data, latest measurement and status color
     """
     result = []
-    for p in Well.objects.filter(location__isnull=False):
+    queryset = Well.objects.filter(location__isnull=False)
+    hist = request.GET.get('h','0')
+    if hist == '0':
+        # exclude historic data (include VS* and WS* names
+        queryset = queryset.filter(name__regex=r'^[VW]S.+')
+    locale.setlocale(locale.LC_ALL, "nl_NL.utf8") # dates in Dutch
+    for p in queryset:
         try:
             pnt = p.location
             last = p.last_measurement()
@@ -70,9 +73,11 @@ def well_locations(request):
                 'description': p.description, 
                 'lon': pnt.x, 
                 'lat': pnt.y,
-                'latest': {'date': last.date.isoformat(), 'value': last.value} if last else {},
+                'address': ', '.join([p.straat or '',p.plaats or '']),
+                'latest': {'since': timesince(last.date), 'date': last.date.strftime('%A %-d %B %Y') if last.date else '-', 'value': last.value} if last else {},
                 'color': statuscolor(last) 
                 })
         except Exception as e:
             return HttpResponseServerError(unicode(e))
+
     return JsonResponse(result,safe=False)

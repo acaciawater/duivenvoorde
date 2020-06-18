@@ -29,10 +29,62 @@ li > a > img {
 <script type="text/javascript" src="/static/js/leaflet.wmslegend.js"></script>
 <script>
 
+function loadWells(map, search) {
+	let url = '/locs'  
+	if (search) {
+		// add options to query string
+		url += search
+	}
+	return $.getJSON(url, function(data) {
+		bounds = new L.LatLngBounds();
+		$.each(data, function(key,well) {
+			// create a marker with label and popup
+			marker = L.marker([well.lat, well.lon],{title:well.name, icon: icons[well.color] || icons.grey});
+			markers[well.id] = marker;
+			marker.bindPopup("Loading...",{maxWidth: "auto"});
+			marker.bindTooltip(well.name,{permanent:true,className:"label",opacity:0.7,direction:"top",offset:[0,-10]});
+			marker.on("click", function(e) {
+				var popup = e.target.getPopup();
+			    $.get("/pop/"+well.id)
+				    .done(function(data) {
+				        popup.setContent(data);
+				        popup.update();
+				    })
+				    .fail(function() {
+				    	popup.closePopup();
+				    });
+			});
+			marker.addTo(map);
+			bounds.extend(marker.getLatLng());
+			
+			// add well to sidebar
+			let html = `<a class="list-group-item" href="/net/well/${well.id}" onmouseover="showMarker(${well.id})" onmouseout="hideMarker(${well.id})"`
+			if (well.latest && well.latest.date) {
+				html += ` title="laatst gezien: ${well.latest.date} (${well.latest.since} geleden)"`
+			}
+			html += `><span><img class="bullet" src="/static/bullet_ball_${well.color}.png"></img>${well.name}</span>`
+			if (well.address) {
+				html += `<br/><div class="text-muted"><small>${well.address}</small></div>`
+			}
+			html += '</a>'
+			$("#list").append(html)
+		})
+		$("#badge").html(`${data.length}`)
+		return bounds
+	})
+}
+
 $(function() {
-	initMap('map',{{options|safe}});
- 	$("#list").height($("#map").height());
- 	$("#list").sortable();
+	const map = initMap('map',{{options|safe}});
+	const boundsRestored = restoreBounds(map)
+	const options = window.location.search
+	loadWells(map, options).then(bounds => {
+		if (!boundsRestored) {
+			map.fit(bounds)
+		}
+	 	$("#list").height($("#map").height());
+	 	$("#list").sortable();
+	})
 });
 
 </script>
@@ -43,21 +95,7 @@ $(function() {
 <div id="map" class="full col-sm-10"></div>
 {% block list %}
 <div id="list" class="list-group scroll col-sm-2">
-<a href="#" class="list-group-item active">{%trans "Wells"%}<span id="badge" title='{% trans "Number of wells" %}' class="badge">{{network.well_set.count}}</a>
-{% for well, last, color in wells %}
-<a 
-	class="list-group-item"
-	href="{% url 'meetnet:well-detail' well.id %}" 
-	onmouseover="showMarker({{well.id}});" 
-	onmouseout="hideMarker({{well.id}});"
-	{% if last %}
-		title="laatst gezien: {{last.date|date:"D d M Y"|default:"nooit"}} ({{last.date|timesince}} geleden)"
-	{% endif %}
->
-<span><img class="bullet" src='/static/bullet_ball_{{color}}.png'></img>{{well.name}}</span>
-{% if well.straat %}<br/><div class='text-muted'><small>{{well.straat}}, {{well.plaats}}</small></div>{% endif %}
-</a>
-{% endfor %}
+<a href="#" class="list-group-item active">{%trans "Wells"%}<span id="badge" title='{% trans "Number of wells" %}' class="badge"></a>
 </div>
 {% endblock list %}
 </div>

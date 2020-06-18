@@ -113,15 +113,6 @@ function addMarkers(map,zoom) {
 	});
 }
 
-function addMarkerGroup(map) {
-	$.getJSON('/locs', function(data) {
-		var markers = L.markerClusterGroup(); 
-		$.each(data, function(key,val) {
-			markers.addLayer(L.marker([val.lat, val.lon]));
-		});
-		map.addLayer(markers);
-	});
-}
 
 var hilite = null;
 var hiliteVisible = false;
@@ -292,14 +283,14 @@ function initMap(div,options) {
 		osm.addTo(map);
 	}
 	
-	if(restoreBounds(map)) {
-		// add markers, but don't change extent
-		addMarkers(map,false);
-	}
-	else {
-		// add markers and zoom to extent
-		addMarkers(map,true);
-	}
+//	if(restoreBounds(map)) {
+//		// add markers, but don't change extent
+//		addMarkers(map,false);
+//	}
+//	else {
+//		// add markers and zoom to extent
+//		addMarkers(map,true);
+//	}
 
 	var control = L.control.labelcontrol({ position: 'topleft' }).addTo(map);
 
