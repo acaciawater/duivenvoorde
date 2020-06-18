@@ -61,7 +61,7 @@ def well_locations(request):
     if hist == '0':
         # exclude historic data (include VS* and WS* names
         queryset = queryset.filter(name__regex=r'^[VW]S.+')
-    locale.setlocale(locale.LC_ALL, "nl_NL.utf8") # dates in Dutch
+    #locale.setlocale(locale.LC_ALL, "nl_NL.utf8") # dates in Dutch
     for p in queryset:
         try:
             pnt = p.location
