@@ -27,6 +27,7 @@ li > a > img {
 <script type="text/javascript" src="/static/js/betterwms.js"></script>
 <script type="text/javascript" src="/static/js/mwmaps.js"></script>
 <script type="text/javascript" src="/static/js/leaflet.wmslegend.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.26.0/moment-with-locales.min.js"></script>
 <script>
 
 function loadWells(map, search) {
@@ -74,7 +75,29 @@ function loadWells(map, search) {
 	})
 }
 
+function makeFilterMenu() {
+	const menu = $("#filter-menu")
+	const href = location.origin + location.pathname
+	const today = moment(moment().format('YYYY-MM-DD'))
+    const items = {
+        'Alleen Vandaag': today,
+        'Sinds gisteren': moment(today).subtract(1, 'days'),
+        'Afgelopen week': moment(today).subtract(6, 'days'),
+        'Afgelopen maand': moment(today).subtract(1, 'month'), 
+        'Afgelopen twee maanden': moment(today).subtract(2, 'month'), 
+        'Afgelopen jaar': moment(today).subtract(1, 'year'), 
+     }
+	for (const [text, start] of Object.entries(items)) {
+		menu.append(`<li><a class="dropdown-item" href="${href}?start=${start.format('YYYY-MM-DD')}">${text}</a></li>`)
+	}
+	menu.append(`<li><a class="dropdown-item" href="${href}">Alles</a></li>`)
+}
+
 $(function() {
+
+	moment.locale('nl-NL')
+	makeFilterMenu()
+	
 	const map = initMap('map',{{options|safe}});
 	const boundsRestored = restoreBounds(map)
 	const options = window.location.search
@@ -88,6 +111,13 @@ $(function() {
 });
 
 </script>
+{% endblock %}
+{% block navbar-right %}
+     <li class="dropdown">
+       <a href="#" class="dropdown-toggle" data-toggle="dropdown">Filter<b class="caret"></b></a>       
+       <ul id="filter-menu" class="dropdown-menu">
+       </ul>
+     </li>
 {% endblock %}
 {% block content %}
 <div class="full adjust container-fluid">

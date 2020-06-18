@@ -14,6 +14,7 @@ from acacia.meetnet.views import NetworkView
 from django.utils import timezone
 from django.utils.timesince import timesince
 import locale
+from dateutil.parser import parser
 
 def statuscolor(last):
     """ returns color for bullets on home page.
@@ -57,15 +58,23 @@ def well_locations(request):
     """
     result = []
     queryset = Well.objects.filter(location__isnull=False)
-    hist = request.GET.get('h','0')
-    if hist == '0':
-        # exclude historic data (include VS* and WS* names
-        queryset = queryset.filter(name__regex=r'^[VW]S.+')
+    start = request.GET.get('start')
+    if start:
+        start = parser().parse(start).date()
+        
+#     hist = request.GET.get('h','0')
+#     if hist == '0':
+#         # exclude historic data (include VS* and WS* names
+#         queryset = queryset.filter(name__regex=r'^[VW]S.+')
     #locale.setlocale(locale.LC_ALL, "nl_NL.utf8") # dates in Dutch
     for p in queryset:
         try:
             pnt = p.location
             last = p.last_measurement()
+            if start:
+                if (last is None) or (last.date and last.date.date() < start):
+                    continue
+ 
             result.append({
                 'id': p.id, 
                 'name': p.name, 
