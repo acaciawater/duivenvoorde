@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^api/v1/', include('acacia.meetnet.api.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
+    url(r'^sensor/', include('acacia.meetnet.sensor.urls',namespace='sensor')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
